@@ -1,6 +1,6 @@
 # openshift-workshop
 
-## Setup
+## Initial Setup
 
 This workshop assumes you have OpenShift installed. Either OpenShift Container Platform (OCP) or [Origin (OKD)](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) should work. I am using Fedora 29.
 
