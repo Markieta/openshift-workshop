@@ -4,7 +4,7 @@
 
 This workshop assumes you have OpenShift installed. Either OpenShift Container Platform (OCP) or [Origin (OKD)](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) should work. I am using Fedora 29.
 
-Assume all commands will be run in this repositories root directory:
+Assume all commands will be run in this repository's root directory:
 
 ```
 git clone https://github.com/Markieta/openshift-workshop.git
