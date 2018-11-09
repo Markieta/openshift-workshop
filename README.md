@@ -535,3 +535,5 @@ Start building the new image from the existing build config:
 
     $ oc start-build django-ex
     build.build.openshift.io/django-ex-3 started
+
+After a few seconds the build will complete and you should be able to access: <http://django-ex-workshop.127.0.0.1.nip.io/> as before.
