@@ -96,4 +96,13 @@ While the service was automatically created for us because we exposed port 5000 
     $ oc expose service flask-hello-world
     route.route.openshift.io/flask-hello-world exposed
 
-You should now be able to access the app here: 
+See that the route was created:
+
+    $ oc get routes
+    NAME                HOST/PORT                                     PATH      SERVICES            PORT       TERMINATION   WILDCARD
+    flask-hello-world   flask-hello-world-workshop.127.0.0.1.nip.io             flask-hello-world   5000-tcp                 None
+
+The route will also be displayed in the list of all resources when running `oc get all` again.
+
+You should now be able to access the app here: <http://flask-hello-world-workshop.127.0.0.1.nip.io/>
+
