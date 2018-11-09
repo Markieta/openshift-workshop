@@ -6,7 +6,7 @@ This workshop assumes you have OpenShift installed. Either OpenShift Container P
 
 Assume all commands will be run in this repository's root directory:
 
-```
+```bash
 git clone https://github.com/Markieta/openshift-workshop.git
 cd openshift-workshop/
 ```
@@ -19,21 +19,21 @@ To use Docker as non-root (recommended), see [Post-installation steps for Linux]
 
 Start the Docker service with systemd:
 
-```
+```bash
 sudo systemctl start docker.service
 ```
 
 Run a local Docker registry (v2):
 
-```
+```bash
 docker run -d -p 5000:5000 --restart=always --name registry registry:2
 ```
 
-You should now be able to see the registry's catalogue of repositories at: http://localhost:5000/v2/_catalog
+You should now be able to see the registry's catalogue of repositories at: <http://localhost:5000/v2/_catalog>
 
 If this is your first time creating a local Docker registry, you should see something like this:
 
-```
+```bash
 {"repositories":[]}
 ```
 
@@ -43,25 +43,25 @@ Inspect the `app.py` and `Dockerfile` in this directory that we will be pushing 
 
 Build an image from the `Dockerfile`:
 
-```
+```bash
 docker build -t flask-hello-world .
 ```
 
 Tag it to create a repository with the full registry location:
 
-```
+```bash
 docker tag flask-hello-world localhost:5000/flask-hello-world
 ```
 
 Finally, push the new repository to the registry:
 
-```
+```bash
 docker push localhost:5000/flask-hello-world
 ```
 
-Now if you look at http://localhost:5000/v2/_catalog you will see this:
+Now if you look at <http://localhost:5000/v2/_catalog> you will see this:
 
-```
+```bash
 {"repositories":["flask-hello-world"]}
 ```
 
@@ -69,13 +69,13 @@ Now if you look at http://localhost:5000/v2/_catalog you will see this:
 
 Start the OpenShift cluster, this may take a few minutes:
 
-```
+```bash
 oc cluster up
 ```
 
 Launch the Flask app in OpenShift from the Docker registry.
 
-```
+```bash
 oc new-app localhost:5000/flask-hello-world
 ```
 
