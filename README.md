@@ -106,3 +106,14 @@ The route will also be displayed in the list of all resources when running `oc g
 
 You should now be able to access the app here: <http://flask-hello-world-workshop.127.0.0.1.nip.io/>
 
+### OpenShift Templating
+
+For the purpose of serializing our application, for portability or later use without all of these manual steps, we can take advantage of templates in OpenShift.
+
+We can retrieve our resources with `oc get` and serialize them into YAML, JSON, and other output formats.
+
+Originally you would use `oc export` to accomplish this, but in newer versions of `oc` the `Command "export" is deprecated, use the oc get --export` instead.
+
+The syntax is as follows:
+
+    oc get <object_type> -o [ yaml | json | ... ] --export
