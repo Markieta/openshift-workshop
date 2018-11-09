@@ -6,10 +6,8 @@ This workshop assumes you have OpenShift installed. Either OpenShift Container P
 
 Assume all commands will be run in this repository's root directory:
 
-```bash
-git clone https://github.com/Markieta/openshift-workshop.git
-cd openshift-workshop/
-```
+    git clone https://github.com/Markieta/openshift-workshop.git
+    cd openshift-workshop/
 
 ### Docker Setup
 
@@ -19,23 +17,17 @@ To use Docker as non-root (recommended), see [Post-installation steps for Linux]
 
 Start the Docker service with systemd:
 
-```bash
-sudo systemctl start docker.service
-```
+    sudo systemctl start docker.service
 
 Run a local Docker registry (v2):
 
-```bash
-docker run -d -p 5000:5000 --restart=always --name registry registry:2
-```
+    docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 You should now be able to see the registry's catalogue of repositories at: <http://localhost:5000/v2/_catalog>
 
 If this is your first time creating a local Docker registry, you should see something like this:
 
-```bash
-{"repositories":[]}
-```
+    {"repositories":[]}
 
 ### Python Flask App
 
@@ -43,40 +35,65 @@ Inspect the `app.py` and `Dockerfile` in this directory that we will be pushing 
 
 Build an image from the `Dockerfile`:
 
-```bash
-docker build -t flask-hello-world .
-```
+    docker build -t flask-hello-world .
 
 Tag it to create a repository with the full registry location:
 
-```bash
-docker tag flask-hello-world localhost:5000/flask-hello-world
-```
+    docker tag flask-hello-world localhost:5000/flask-hello-world
 
 Finally, push the new repository to the registry:
 
-```bash
-docker push localhost:5000/flask-hello-world
-```
+    docker push localhost:5000/flask-hello-world
 
 Now if you look at <http://localhost:5000/v2/_catalog> you will see this:
 
-```bash
-{"repositories":["flask-hello-world"]}
-```
+    {"repositories":["flask-hello-world"]}
 
 ### OpenShift Setup
 
 Start the OpenShift cluster, this may take a few minutes:
 
-```bash
-oc cluster up
-```
+    oc cluster up
+
+Create a new project to isolate this workshop environment:
+
+    $ oc new-project workshop
+    Now using project "workshop" on server "https://127.0.0.1:8443".
+    You can add applications to this project with the 'new-app' command. For example, try:
+
+        oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
+
+    to build a new example application in Ruby.
+
+You can always check to see which project you are currently using by running:
+
+    $ oc project
+    Using project "workshop" on server "https://127.0.0.1:8443".
 
 Launch the Flask app in OpenShift from the Docker registry.
 
-```bash
-oc new-app localhost:5000/flask-hello-world
-```
+    oc new-app localhost:5000/flask-hello-world
 
 You may also do this from the OpenShift Web Console.
+
+Review that a pod, replication controller, and service were created for this app:
+
+    $ oc get all
+    NAME                            READY     STATUS    RESTARTS   AGE
+    pod/flask-hello-world-1-phxk6   1/1       Running   0          1h
+
+    NAME                                        DESIRED   CURRENT   READY     AGE
+    replicationcontroller/flask-hello-world-1   1         1         1         1h
+
+    NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+    service/flask-hello-world   ClusterIP   172.30.108.31   <none>        5000/TCP   1h
+
+    NAME                                                   REVISION   DESIRED   CURRENT   TRIGGERED BY
+    deploymentconfig.apps.openshift.io/flask-hello-world   1          1         1         config
+
+While the service was automatically created for us because we exposed port 5000 in the `Dockerfile`, we still need to route the service to make it accessible. Create the unsecured route:
+
+    $ oc expose service flask-hello-world
+    route.route.openshift.io/flask-hello-world exposed
+
+You should now be able to access the app here: 
