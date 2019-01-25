@@ -665,5 +665,37 @@ You will now have a BuildConfig named `wekan`. We want Jenkins to start a build 
 Another BuildConfig is needed for configuring the Jenkins pipeline. Create a file named `wekan-pipeline.yaml` with the contents below:
 
 ```yaml
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "wekan-pipeline"
+spec:
+  strategy:
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        pipeline {
+          agent any
 
+          stages {
+            stage('Build') {
+              steps {
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject("pipeline-workshop"){
+                      openshift.selector("bc", "wekan").startBuild()
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+    type: JenkinsPipeline
+```
+
+Create the wekan-pipeline BuildConfig:
+
+```bash
+$ oc create -f wekan-pipeline.yaml
+buildconfig.build.openshift.io/wekan-pipeline created
 ```
