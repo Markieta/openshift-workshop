@@ -631,20 +631,28 @@ For this walkthrough, I have forked the [official Wekan repository](https://gith
 
 Lucky for us, the Wekan repository contains an ["OpenShift template for Wekan backed by MongoDB"](https://github.com/Markieta/wekan/tree/pipeline-workshop/openshift).
 
-Create a template in our `pipeline-workshop-dev` namespace using the YAML file:
+Create a template in both our `-dev` and `-prod` namespaces using the YAML file:
 
 ```bash
-$ oc create -f https://raw.githubusercontent.com/Markieta/wekan/pipeline-workshop/openshift/wekan.yml
-template.template.openshift.io/wekan-mongodb-persistent created
+oc create -f https://raw.githubusercontent.com/Markieta/wekan/pipeline-workshop/openshift/wekan.yml
+oc create -f https://raw.githubusercontent.com/Markieta/wekan/pipeline-workshop/openshift/wekan.yml -n pipeline-workshop-prod
 ```
 
 Use the provided template to provision all required resources. You will need to provide a value for the Fully Qualified Domain Name (**FQDN**) parameter:
 
 ```bash
-oc new-app --template=wekan-mongodb-persistent -p FQDN="wekan.localhost"
+oc new-app --template=wekan-mongodb-persistent -p FQDN="dev.wekan.localhost"
 ```
 
-You should now have a working Wekan instance here: <https://wekan.localhost/>
+You should now have a development Wekan instance here: <https://dev.wekan.localhost/>
+
+Add a production instance in the `-prod` environment as well:
+
+```bash
+oc new-app --template=wekan-mongodb-persistent -p FQDN="wekan.localhost" -n pipeline-workshop-prod
+```
+
+You should now have a production Wekan instance here: <https://wekan.localhost/>
 
 ### BuildConfig and Pipeline
 
@@ -701,7 +709,7 @@ spec:
                 }
                 script {
                   openshift.withCluster() {
-                    openshift.tag("pipeline-workshop-dev/wekan:latest", "pipeline-workshop-prod/wekan:promoteToProd")
+                    openshift.tag("pipeline-workshop-dev/wekan:latest", "pipeline-workshop-prod/wekan:latest")
                   }
                 }
               }
@@ -756,8 +764,7 @@ If everything was done correctly. You should now see HTTP status 200 responses a
 When promoting the image to the production environment, we need to give the Jenkins service account access to that namespace. Give the service account `edit` permission in the `pipeline-workshop-prod` namespace:
 
 ```bash
-oc policy add-role-to-user edit system:serviceaccount:pipeline-workshop-dev:jenkins -n pipeline-workshop
--prod
+oc policy add-role-to-user edit system:serviceaccount:pipeline-workshop-dev:jenkins -n pipeline-workshop-prod
 ```
 
 _This is a very broad role, in reality, use more specific roles to give the service account less permissions overall._
