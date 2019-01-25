@@ -748,3 +748,16 @@ Retrieve the GitHub webhook, replacing localhost (or 127.0.0.1) with the UltraHo
 _Substitute \<webhook_namespace> for your UltraHook name and \<secret> for the secret you entered in the `wekan-pipeline` BuildConfig._
 
 In our forked Wekan repository settings on GitHub, under the Webhooks section, select: **Add webhook**. Enter the above URL for **Payload URL**, . Switch **Content type** to **application/json** and click **Add webhook**.
+
+If everything was done correctly. You should now see HTTP status 200 responses and green lights from GitHub. Whenever changes are pushed to the `wekan-pipeline` branch, a build should automatically be triggered.
+
+### Service Account Role-Based Access Control (RBAC)
+
+When promoting the image to the production environment, we need to give the Jenkins service account access to that namespace. Give the service account `edit` permission in the `pipeline-workshop-prod` namespace:
+
+```bash
+oc policy add-role-to-user edit system:serviceaccount:pipeline-workshop-dev:jenkins -n pipeline-workshop
+-prod
+```
+
+_This is a very broad role, in reality, use more specific roles to give the service account less permissions overall._
