@@ -662,7 +662,7 @@ oc new-build https://github.com/Markieta/wekan.git#pipeline-workshop
 
 You will now have a BuildConfig named `wekan`. We want Jenkins to start a build with this BuildConfig whenever the pipeline starts (either manually or after a code push).
 
-Another BuildConfig is needed for configuring the Jenkins pipeline. Create a file named `wekan-pipeline.yaml` with the contents below:
+Another BuildConfig is needed for configuring the Jenkins pipeline. Create a file named `wekan-pipeline.yaml` with the contents below (change the secret to some random alphanumeric string):
 
 ```yaml
 kind: "BuildConfig"
