@@ -691,7 +691,8 @@ spec:
                 script {
                   openshift.withCluster() {
                     openshift.withProject("pipeline-workshop"){
-                      openshift.selector("bc", "wekan").startBuild()
+                      def buildSelector = openshift.selector("bc", "wekan").startBuild()
+                      buildSelector.logs('-f')
                     }
                   }
                 }
@@ -708,3 +709,4 @@ Create the wekan-pipeline BuildConfig:
 $ oc create -f wekan-pipeline.yaml
 buildconfig.build.openshift.io/wekan-pipeline created
 ```
+
