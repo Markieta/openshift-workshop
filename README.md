@@ -601,3 +601,69 @@ build.build.openshift.io/django-ex-3 started
 After a few seconds the build will complete and you should be able to access: <http://django-ex-workshop.127.0.0.1.nip.io/> as before.
 
 ## OpenShift Jenkins Pipeline (using DSL Plugin)
+
+This section will demonstrate how to create a Jenkins build pipeline of a complex app.
+
+### Project and Jenkins Setup
+
+To avoid collisions with our current environment, let's create a new project:
+
+```bash
+$ oc new-project pipeline-workshop
+Now using project "pipeline-workshop" on server "https://127.0.0.1:8443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
+
+to build a new example application in Ruby.
+```
+
+Deploy Jenkins using ephemeral storage:
+
+```bash
+oc new-app jenkins-ephemeral
+```
+
+### Wekan
+
+The app we will be building in our pipeline is called [Wekan](https://wekan.github.io/). Wekan is an open-source kanban. I chose Wekan because out of all the open-source kanban tools I have tested, Wekan had the best design and functionality. I think it is a neat alternative to [Trello](https://trello.com/en) if you're looking for something free, open-source, and can be self-hosted.
+
+For this walkthrough, I have forked the [official Wekan repository](https://github.com/wekan/wekan) in order to make changes to it. [Here is my forked version](https://github.com/Markieta/wekan).
+
+### Wekan Resource Provisioning
+
+Lucky for us, the Wekan repository contains an ["OpenShift template for Wekan backed by MongoDB"](https://github.com/Markieta/wekan/tree/pipeline-workshop/openshift).
+
+Create a template in our `pipeline-workshop` namespace using the YAML file:
+
+```bash
+$ oc create -f https://raw.githubusercontent.com/Markieta/wekan/pipeline-workshop/openshift/wekan.yml
+template.template.openshift.io/wekan-mongodb-persistent created
+```
+
+Use the provided template to provision all required resources. You will need to provide a value for the Fully Qualified Domain Name (**FQDN**) parameter:
+
+```bash
+oc new-app --template=wekan-mongodb-persistent -p FQDN="wekan.localhost"
+```
+
+You should now have a working Wekan instance here: <https://wekan.localhost/>
+
+### BuildConfig and Pipeline
+
+A little bit more work is required to automate the build process of Wekan.
+
+Create a BuildConfig using my forked repository on the branch named `pipeline-workshop`:
+
+```bash
+oc new-build https://github.com/Markieta/wekan.git#pipeline-workshop
+```
+
+You will now have a BuildConfig named `wekan`. We want Jenkins to start a build with this BuildConfig whenever the pipeline starts (either manually or after a code push).
+
+Another BuildConfig is needed for configuring the Jenkins pipeline. Create a file named `wekan-pipeline.yaml` with the contents below:
+
+```yaml
+
+```
