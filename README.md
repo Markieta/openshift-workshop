@@ -670,6 +670,10 @@ apiVersion: "v1"
 metadata:
   name: "wekan-pipeline"
 spec:
+  triggers:
+    - type: GitHub
+      github:
+        secret: ################
   strategy:
     jenkinsPipelineStrategy:
       jenkinsfile: |-
