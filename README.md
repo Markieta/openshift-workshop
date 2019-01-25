@@ -670,6 +670,11 @@ apiVersion: "v1"
 metadata:
   name: "wekan-pipeline"
 spec:
+  source:
+    git:
+      ref: pipeline-workshop
+      uri: 'https://github.com/Markieta/wekan.git'
+    type: Git
   triggers:
     - type: GitHub
       github:
