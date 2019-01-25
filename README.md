@@ -717,3 +717,34 @@ Create the wekan-pipeline BuildConfig:
 $ oc create -f wekan-pipeline.yaml
 buildconfig.build.openshift.io/wekan-pipeline created
 ```
+
+### Triggering Builds with GitHub Webhooks and UltraHook Proxy
+
+In order to make webhooks work on localhost (for development purposes only), register with and install [UltraHook](http://www.ultrahook.com/). UltraHook will create a proxy your localhost on whichever specified port you want, allowing GitHub to send JSON data to our local machines when code is pushed to our branch.
+
+```bash
+gem install ultrahook
+```
+
+Once installed, you can start the proxy by running:
+
+```bash
+$ ultrahook openshift https://localhost:8443
+Authenticated as <webhook_namespace>
+Forwarding activated...
+http://openshift.<webhook_namespace>.ultrahook.com -> https://localhost:8443
+```
+
+You should now be able to use the UltraHook URL in place of <https://localhost:8443> when entering your webhook URL into GitHub. Leave this terminal session up and running while testing anything involving webhooks.
+
+```bash
+oc describe bc wekan-pipeline
+```
+
+Retrieve the GitHub webhook, replacing localhost (or 127.0.0.1) with the UltraHook URL. It should look something like this:
+
+> `http://openshift.<webhook_namespace>.ultrahook.com/apis/build.openshift.io/v1/namespaces/pipeline-workshop-dev/buildconfigs/wekan-pipeline/webhooks/<secret>/github`
+
+_Substitute \<webhook_namespace> for your UltraHook name and \<secret> for the secret you entered in the `wekan-pipeline` BuildConfig._
+
+In our forked Wekan repository settings on GitHub, under the Webhooks section, select: **Add webhook**. Enter the above URL for **Payload URL**, . Switch **Content type** to **application/json** and click **Add webhook**.
