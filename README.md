@@ -606,18 +606,14 @@ This section will demonstrate how to create a Jenkins build pipeline of a comple
 
 ### Project and Jenkins Setup
 
-To avoid collisions with our current environment, let's create a new project:
+To avoid collisions with our current environment, let's create two new projects:
 
 ```bash
-$ oc new-project pipeline-workshop
-Now using project "pipeline-workshop" on server "https://127.0.0.1:8443".
-
-You can add applications to this project with the 'new-app' command. For example, try:
-
-    oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
-
-to build a new example application in Ruby.
+oc new-project pipeline-workshop-prod
+oc new-project pipeline-workshop-dev
 ```
+
+_Continue using the `-dev` namespace throughout unless otherwise specified._
 
 Deploy Jenkins using ephemeral storage:
 
@@ -635,7 +631,7 @@ For this walkthrough, I have forked the [official Wekan repository](https://gith
 
 Lucky for us, the Wekan repository contains an ["OpenShift template for Wekan backed by MongoDB"](https://github.com/Markieta/wekan/tree/pipeline-workshop/openshift).
 
-Create a template in our `pipeline-workshop` namespace using the YAML file:
+Create a template in our `pipeline-workshop-dev` namespace using the YAML file:
 
 ```bash
 $ oc create -f https://raw.githubusercontent.com/Markieta/wekan/pipeline-workshop/openshift/wekan.yml
@@ -690,10 +686,22 @@ spec:
               steps {
                 script {
                   openshift.withCluster() {
-                    openshift.withProject("pipeline-workshop"){
+                    openshift.withProject("pipeline-workshop-dev"){
                       def buildSelector = openshift.selector("bc", "wekan").startBuild()
                       buildSelector.logs('-f')
                     }
+                  }
+                }
+              }
+            }
+            stage('Promote to Production?') {
+              steps {
+                timeout(time:15, unit:'MINUTES') {
+                  input message: "Promote to Production?", ok: "Promote"
+                }
+                script {
+                  openshift.withCluster() {
+                    openshift.tag("pipeline-workshop-dev/wekan:latest", "pipeline-workshop-prod/wekan:promoteToProd")
                   }
                 }
               }
@@ -709,4 +717,3 @@ Create the wekan-pipeline BuildConfig:
 $ oc create -f wekan-pipeline.yaml
 buildconfig.build.openshift.io/wekan-pipeline created
 ```
-
