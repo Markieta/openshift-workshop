@@ -6,8 +6,10 @@ This workshop assumes you have OpenShift installed. Either OpenShift Container P
 
 Assume all commands will be run in this repository's root directory:
 
-    git clone https://github.com/Markieta/openshift-workshop.git
-    cd openshift-workshop/
+```bash
+git clone https://github.com/Markieta/openshift-workshop.git
+cd openshift-workshop/
+```
 
 ## Docker Setup
 
@@ -17,11 +19,15 @@ To use Docker as non-root (recommended), see [Post-installation steps for Linux]
 
 Start the Docker service with systemd:
 
-    sudo systemctl start docker.service
+```bash
+sudo systemctl start docker.service
+```
 
 Run a local Docker registry (v2):
 
-    docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```bash
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
 
 You should now be able to see the registry's catalogue of repositories at: <http://localhost:5000/v2/_catalog>
 
@@ -35,15 +41,21 @@ Inspect the `app.py` and `Dockerfile` in this directory that we will be pushing 
 
 Build an image from the `Dockerfile`:
 
-    docker build -t flask-hello-world .
+```bash
+docker build -t flask-hello-world .
+```
 
 Tag it to create a repository with the full registry location:
 
-    docker tag flask-hello-world localhost:5000/flask-hello-world
+```bash
+docker tag flask-hello-world localhost:5000/flask-hello-world
+```
 
 Finally, push the new repository to the registry:
 
-    docker push localhost:5000/flask-hello-world
+```bash
+docker push localhost:5000/flask-hello-world
+```
 
 Now if you look at <http://localhost:5000/v2/_catalog> you will see this:
 
@@ -53,54 +65,72 @@ Now if you look at <http://localhost:5000/v2/_catalog> you will see this:
 
 Start the OpenShift cluster, this may take a few minutes:
 
-    oc cluster up
+```bash
+oc cluster up
+```
 
 Create a new project to isolate this workshop environment:
 
-    $ oc new-project workshop
-    Now using project "workshop" on server "https://127.0.0.1:8443".
-    You can add applications to this project with the 'new-app' command. For example, try:
+```bash
+$ oc new-project workshop
+Now using project "workshop" on server "https://127.0.0.1:8443".
+You can add applications to this project with the 'new-app' command. For example, try:
+```
 
-        oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
+```bash
+oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
+```
 
-    to build a new example application in Ruby.
+```bash
+to build a new example application in Ruby.
+```
 
 You can always check to see which project you are currently using by running:
 
-    $ oc project
-    Using project "workshop" on server "https://127.0.0.1:8443".
+```bash
+$ oc project
+Using project "workshop" on server "https://127.0.0.1:8443".
+```
 
 Launch the Flask app in OpenShift from the Docker registry.
 
-    oc new-app localhost:5000/flask-hello-world
+```bash
+oc new-app localhost:5000/flask-hello-world
+```
 
 You may also do this from the OpenShift Web Console.
 
 Review that a pod, replication controller, and service were created for this app:
 
-    $ oc get all
-    NAME                            READY     STATUS    RESTARTS   AGE
-    pod/flask-hello-world-1-phxk6   1/1       Running   0          1h
+```bash
+$ oc get all
+NAME                            READY     STATUS    RESTARTS   AGE
+pod/flask-hello-world-1-phxk6   1/1       Running   0          1h
 
-    NAME                                        DESIRED   CURRENT   READY     AGE
-    replicationcontroller/flask-hello-world-1   1         1         1         1h
+NAME                                        DESIRED   CURRENT   READY     AGE
+replicationcontroller/flask-hello-world-1   1         1         1         1h
 
-    NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-    service/flask-hello-world   ClusterIP   172.30.108.31   <none>        5000/TCP   1h
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/flask-hello-world   ClusterIP   172.30.108.31   <none>        5000/TCP   1h
 
-    NAME                                                   REVISION   DESIRED   CURRENT   TRIGGERED BY
-    deploymentconfig.apps.openshift.io/flask-hello-world   1          1         1         config
+NAME                                                   REVISION   DESIRED   CURRENT   TRIGGERED BY
+deploymentconfig.apps.openshift.io/flask-hello-world   1          1         1         config
+```
 
 While the service was automatically created for us because we exposed port 5000 in the `Dockerfile`, we still need to route the service to make it accessible. Create the unsecured route:
 
-    $ oc expose service flask-hello-world
-    route.route.openshift.io/flask-hello-world exposed
+```bash
+$ oc expose service flask-hello-world
+route.route.openshift.io/flask-hello-world exposed
+```
 
 See that the route was created:
 
-    $ oc get routes
-    NAME                HOST/PORT                                     PATH      SERVICES            PORT       TERMINATION   WILDCARD
-    flask-hello-world   flask-hello-world-workshop.127.0.0.1.nip.io             flask-hello-world   5000-tcp                 None
+```bash
+$ oc get routes
+NAME                HOST/PORT                                     PATH      SERVICES            PORT       TERMINATION   WILDCARD
+flask-hello-world   flask-hello-world-workshop.127.0.0.1.nip.io             flask-hello-world   5000-tcp                 None
+```
 
 The route will also be displayed in the list of all resources when running `oc get all` again.
 
@@ -116,13 +146,17 @@ Originally you would use `oc export` to accomplish this, but in newer versions o
 
 The syntax is as follows:
 
-    oc get <object_type> -o [ yaml | json | ... ] --export
+```bash
+oc get <object_type> -o [ yaml | json | ... ] --export
+```
 
 ### flask-hello-world template
 
 Because the pod(s) and replication controller are automatically generated by the deployment config, we do not need to extract those resources for our template. The following command will export the deployment config, service, and route information for the `flask-hello-world` app into a single YAML config file:
 
-    oc get dc,svc,route flask-hello-world -o yaml --export > flask-hello-world.yaml
+```bash
+oc get dc,svc,route flask-hello-world -o yaml --export > flask-hello-world.yaml
+```
 
 Here's an example of what that file might end up looking like:
 
@@ -244,24 +278,30 @@ There is a lot of unnecessary information here that we can probably remove. Such
 
 Let's test the template to ensure it works. First, delete all of the resources relating to the `flask-hello-world` app:
 
-    $ oc delete all -l app=flask-hello-world
-    pod "flask-hello-world-1-lbfbh" deleted
-    replicationcontroller "flask-hello-world-1" deleted
-    service "flask-hello-world" deleted
-    deploymentconfig.apps.openshift.io "flask-hello-world" deleted
-    route.route.openshift.io "flask-hello-world" deleted
+```bash
+$ oc delete all -l app=flask-hello-world
+pod "flask-hello-world-1-lbfbh" deleted
+replicationcontroller "flask-hello-world-1" deleted
+service "flask-hello-world" deleted
+deploymentconfig.apps.openshift.io "flask-hello-world" deleted
+route.route.openshift.io "flask-hello-world" deleted
+```
 
 Ensure all resources have been deleted:
 
-    $ oc get all
-    No resources found.
+```bash
+$ oc get all
+No resources found.
+```
 
 Create the application with out YAML template:
 
-    $ oc create -f flask-hello-world.yaml
-    deploymentconfig.apps.openshift.io/flask-hello-world created
-    service/flask-hello-world created
-    route.route.openshift.io/flask-hello-world created
+```bash
+$ oc create -f flask-hello-world.yaml
+deploymentconfig.apps.openshift.io/flask-hello-world created
+service/flask-hello-world created
+route.route.openshift.io/flask-hello-world created
+```
 
 Confirm that all of the resources were created with `oc get all` and that <http://flask-hello-world-workshop.127.0.0.1.nip.io/> is working.
 
@@ -269,38 +309,44 @@ Confirm that all of the resources were created with `oc get all` and that <http:
 
 Here is a more complex application from Software Collections on GitHub that was designed for OpenShift. Create the Django app using the GitHub source:
 
-    oc new-app https://github.com/openshift/django-ex.git
+```bash
+oc new-app https://github.com/openshift/django-ex.git
+```
 
 This may take a few seconds. You can view the status of this creating using `oc status` or from the Web Console.
 
 After it has finished building and deploying the app (named `django-ex` by default), list all of the resources created for it:
 
-    $ oc get all -l app=django-ex
-    NAME                    READY     STATUS    RESTARTS   AGE
-    pod/django-ex-1-s5glf   1/1       Running   0          19m
+```bash
+$ oc get all -l app=django-ex
+NAME                    READY     STATUS    RESTARTS   AGE
+pod/django-ex-1-s5glf   1/1       Running   0          19m
 
-    NAME                                DESIRED   CURRENT   READY     AGE
-    replicationcontroller/django-ex-1   1         1         1         19m
+NAME                                DESIRED   CURRENT   READY     AGE
+replicationcontroller/django-ex-1   1         1         1         19m
 
-    NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-    service/django-ex   ClusterIP   172.30.134.28   <none>        8080/TCP   20m
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/django-ex   ClusterIP   172.30.134.28   <none>        8080/TCP   20m
 
-    NAME                                           REVISION   DESIRED   CURRENT   TRIGGERED BY
-    deploymentconfig.apps.openshift.io/django-ex   1          1         1         config,image(django-ex:latest)
+NAME                                           REVISION   DESIRED   CURRENT   TRIGGERED BY
+deploymentconfig.apps.openshift.io/django-ex   1          1         1         config,image(django-ex:latest)
 
-    NAME                                       TYPE      FROM      LATEST
-    buildconfig.build.openshift.io/django-ex   Source    Git       1
+NAME                                       TYPE      FROM      LATEST
+buildconfig.build.openshift.io/django-ex   Source    Git       1
 
-    NAME                                   TYPE      FROM          STATUS     STARTED          DURATION
-    build.build.openshift.io/django-ex-1   Source    Git@ab765c5   Complete   20 minutes ago   22s
+NAME                                   TYPE      FROM          STATUS     STARTED          DURATION
+build.build.openshift.io/django-ex-1   Source    Git@ab765c5   Complete   20 minutes ago   22s
 
-    NAME                                       DOCKER REPO                          TAGS      UPDATED
-    imagestream.image.openshift.io/django-ex   172.30.1.1:5000/workshop/django-ex   latest    19 minutes ago
+NAME                                       DOCKER REPO                          TAGS      UPDATED
+imagestream.image.openshift.io/django-ex   172.30.1.1:5000/workshop/django-ex   latest    19 minutes ago
+```
 
 One more manual step is needed to create the route that exposes the service externally:
 
-    $ oc expose service django-ex
-    route.route.openshift.io/django-ex exposed
+```bash
+$ oc expose service django-ex
+route.route.openshift.io/django-ex exposed
+```
 
 Visit <http://django-ex-workshop.127.0.0.1.nip.io/> and you should be greeted with:
 
@@ -310,7 +356,9 @@ Because the pod(s) and replication controller are automatically generated by the
 
 The following commands will export different resource information for the `django-ex` app into separate YAML config files:
 
-    oc get dc django-ex -o yaml --export > django-ex-deploymentconfig.yaml
+```bash
+oc get dc django-ex -o yaml --export > django-ex-deploymentconfig.yaml
+```
 
 ```yaml
 apiVersion: apps.openshift.io/v1
@@ -385,7 +433,9 @@ status:
   updatedReplicas: 0
 ```
 
-    oc get svc django-ex -o yaml --export > django-ex-service.yaml
+```bash
+oc get svc django-ex -o yaml --export > django-ex-service.yaml
+```
 
 ```yaml
 apiVersion: v1
@@ -413,7 +463,9 @@ status:
   loadBalancer: {}
 ```
 
-    oc get route django-ex -o yaml --export > django-ex-route.yaml
+```bash
+oc get route django-ex -o yaml --export > django-ex-route.yaml
+```
 
 ```yaml
 apiVersion: route.openshift.io/v1
@@ -439,7 +491,9 @@ status:
   ingress: null
 ```
 
-    oc get is django-ex -o yaml --export > django-ex-imagestream.yaml
+```bash
+oc get is django-ex -o yaml --export > django-ex-imagestream.yaml
+```
 
 ```yaml
 apiVersion: image.openshift.io/v1
@@ -460,7 +514,9 @@ status:
   dockerImageRepository: 172.30.1.1:5000/django-ex
 ```
 
-    oc get bc django-ex -o yaml --export > django-ex-buildconfig.yaml
+```bash
+oc get bc django-ex -o yaml --export > django-ex-buildconfig.yaml
+```
 
 ```yaml
 apiVersion: build.openshift.io/v1
@@ -512,28 +568,36 @@ status:
 
 Let's delete the Django app and start from scratch to test our newly generated YAML template files:
 
-    $ oc delete all -l app=django-ex
-    pod "django-ex-1-mmrrs" deleted
-    replicationcontroller "django-ex-1" deleted
-    service "django-ex" deleted
-    deploymentconfig.apps.openshift.io "django-ex" deleted
-    buildconfig.build.openshift.io "django-ex" deleted
-    build.build.openshift.io "django-ex-1" deleted
-    imagestream.image.openshift.io "django-ex" deleted
-    route.route.openshift.io "django-ex" deleted
+```bash
+$ oc delete all -l app=django-ex
+pod "django-ex-1-mmrrs" deleted
+replicationcontroller "django-ex-1" deleted
+service "django-ex" deleted
+deploymentconfig.apps.openshift.io "django-ex" deleted
+buildconfig.build.openshift.io "django-ex" deleted
+build.build.openshift.io "django-ex-1" deleted
+imagestream.image.openshift.io "django-ex" deleted
+route.route.openshift.io "django-ex" deleted
+```
 
 Create the Django app using our 5 YAML files (deployment config, service, route, image stream, and build config):
 
-    $ oc create -f django-ex-deploymentconfig.yaml,django-ex-service.yaml,django-ex-route.yaml,django-ex-imagestream.yaml,django-ex-buildconfig.yaml
-    deploymentconfig.apps.openshift.io/django-ex created
-    service/django-ex created
-    route.route.openshift.io/django-ex created
-    imagestream.image.openshift.io/django-ex created
-    buildconfig.build.openshift.io/django-ex created
+```bash
+$ oc create -f django-ex-deploymentconfig.yaml,django-ex-service.yaml,django-ex-route.yaml,django-ex-imagestream.yaml,django-ex-buildconfig.yaml
+deploymentconfig.apps.openshift.io/django-ex created
+service/django-ex created
+route.route.openshift.io/django-ex created
+imagestream.image.openshift.io/django-ex created
+buildconfig.build.openshift.io/django-ex created
+```
 
 Start building the new image from the existing build config:
 
-    $ oc start-build django-ex
-    build.build.openshift.io/django-ex-3 started
+```bash
+$ oc start-build django-ex
+build.build.openshift.io/django-ex-3 started
+```
 
 After a few seconds the build will complete and you should be able to access: <http://django-ex-workshop.127.0.0.1.nip.io/> as before.
+
+## OpenShift Jenkins Pipeline (using DSL Plugin)
