@@ -709,7 +709,7 @@ spec:
                 }
                 script {
                   openshift.withCluster() {
-                    openshift.tag("pipeline-workshop-dev/wekan:latest", "pipeline-workshop-prod/wekan:latest")
+                    openshift.tag("docker.io/markieta/wekan:latest", "pipeline-workshop-prod/wekan:latest")
                   }
                 }
               }
@@ -768,3 +768,83 @@ oc policy add-role-to-user edit system:serviceaccount:pipeline-workshop-dev:jenk
 ```
 
 _This is a very broad role, in reality, use more specific roles to give the service account less permissions overall._
+
+### Docker Hub External Registry
+
+For this demo, I will be pushing my complete Docker images into my own repository on the Docker Hub registry. To start, ensure your Docker credentials are present in `~/.docker/config.json`, you should see something like this:
+
+```json
+{
+        "auths": {
+                "https://index.docker.io/v1/": {
+                        "auth": "34tg3gG34t3g4rGFH3gr3t"
+                },
+        },
+        "HttpHeaders": {
+                "User-Agent": "Docker-Client/18.09.1 (linux)"
+        }
+}
+```
+
+If not, login using your Docker Hub credentials:
+
+```bash
+docker login docker.io
+```
+
+Now, create a secret in OpenShift using those credentials:
+
+```bash
+$ oc secrets new dockerhub ~/.docker/config.json
+secret/dockerhub
+```
+
+Run the following:
+
+```bash
+oc get secrets
+```
+
+Confirm you now see an entry with the name: `dockerhub`.
+
+Edit the `builder` service account to include the `dockerhub` secret:
+
+```bash
+oc edit sa builder
+```
+
+Add the line below, to the end of this config file:
+
+```yaml
+- name: dockerhub
+```
+
+Edit the `wekan` BuildConfig as well:
+
+```bash
+oc edit bc wekan
+```
+
+Change the following portion from:
+
+```yaml
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: time:latest
+```
+
+to this:
+
+```yaml
+spec:
+  output:
+    to:
+      kind: DockerImage
+      name: docker.io/markieta/wekan:latest
+    pushSecret:
+      name: dockerhub
+```
+
+New Wekan builds should now be pushed to Docker Hub instead of the local OpenShift registry.
