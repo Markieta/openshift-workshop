@@ -77,13 +77,13 @@ Now using project "workshop" on server "https://127.0.0.1:8443".
 You can add applications to this project with the 'new-app' command. For example, try:
 ```
 
+Execute:
+
 ```bash
 oc new-app centos/ruby-25-centos7~https://github.com/sclorg/ruby-ex.git
 ```
 
-```bash
 to build a new example application in Ruby.
-```
 
 You can always check to see which project you are currently using by running:
 
