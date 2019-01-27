@@ -658,10 +658,39 @@ You should now have a production Wekan instance here: <https://wekan.localhost/>
 
 A little bit more work is required to automate the build process of Wekan.
 
-Create a BuildConfig using my forked repository on the branch named `pipeline-workshop`:
+Create a BuildConfig using my forked repository on the branch named `pipeline-workshop`. Create a file named `wekan.yaml` with the contents below:
+
+```yaml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: wekan
+spec:
+  output:
+    to:
+      kind: DockerImage
+      name: docker.io/markieta/wekan:latest
+    pushSecret:
+      name: dockerhub
+  source:
+    git:
+      ref: pipeline-workshop
+      uri: https://github.com/Markieta/wekan.git
+    type: Git
+  strategy:
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: debian:buster-slim
+        namespace: pipeline-workshop-dev
+    type: Docker
+```
+
+Create the `wekan` BuildConfig:
 
 ```bash
-oc new-build https://github.com/Markieta/wekan.git#pipeline-workshop
+$ oc create -f wekan.yaml
+buildconfig.build.openshift.io/wekan created
 ```
 
 You will now have a BuildConfig named `wekan`. We want Jenkins to start a build with this BuildConfig whenever the pipeline starts (either manually or after a code push).
@@ -697,6 +726,7 @@ spec:
                     openshift.withProject("pipeline-workshop-dev"){
                       def buildSelector = openshift.selector("bc", "wekan").startBuild()
                       buildSelector.logs('-f')
+                      openshift.tag("docker.io/markieta/wekan:latest", "pipeline-workshop-dev/wekan:latest")
                     }
                   }
                 }
@@ -817,34 +847,6 @@ Add the line below, to the end of this config file:
 
 ```yaml
 - name: dockerhub
-```
-
-Edit the `wekan` BuildConfig as well:
-
-```bash
-oc edit bc wekan
-```
-
-Change the following portion from:
-
-```yaml
-spec:
-  output:
-    to:
-      kind: ImageStreamTag
-      name: time:latest
-```
-
-to this:
-
-```yaml
-spec:
-  output:
-    to:
-      kind: DockerImage
-      name: docker.io/markieta/wekan:latest
-    pushSecret:
-      name: dockerhub
 ```
 
 New Wekan builds should now be pushed to Docker Hub instead of the local OpenShift registry.
