@@ -680,9 +680,8 @@ spec:
   strategy:
     dockerStrategy:
       from:
-        kind: ImageStreamTag
-        name: debian:buster-slim
-        namespace: pipeline-workshop-dev
+        kind: DockerImage
+        name: docker.io/debian:buster-slim
     type: Docker
 ```
 
